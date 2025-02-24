@@ -10,14 +10,16 @@ sorting
 
 #define ARRAY_SIZE 			64
 #define SQUARE_SIZE_PIXELS 	10
+#define ARRAY_MAX			30
 
 void fill_random_array(int numbers[ARRAY_SIZE], int array_max);
-void draw_array(int numbers[ARRAY_SIZE], int windowHeight);
+void draw_array(int numbers[ARRAY_SIZE], int windowHeight, int current_item);
+void bubblesort(int numbers[ARRAY_SIZE], int windowHeight);
 
 int main(int argc, char* argv[])
 {
 	srand(time(NULL));
-	int array_max = 30; // goes from 0 to this (x coord)
+	int array_max = ARRAY_MAX; // goes from 1 to this (x coord)
 	int numbers[ARRAY_SIZE];
 	fill_random_array(numbers, array_max);
 
@@ -31,15 +33,42 @@ int main(int argc, char* argv[])
 
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 	InitWindow(ARRAY_SIZE*SQUARE_SIZE_PIXELS, windowHeight, "sorting");
+	//SetTargetFPS(2);
+
+	int pass = 0;
+    int index = 0;
 
 	while (!WindowShouldClose())
-	{
-		BeginDrawing();
-		ClearBackground(BLACK);
-		draw_array(numbers, windowHeight);
-		DrawText("bubble sort", 0,0,15,BLUE);
-		EndDrawing();
-	}
+    {
+        BeginDrawing();
+        ClearBackground(BLACK);
+
+        draw_array(numbers, windowHeight, index);
+        DrawText("bubble sort", 0, 0, 15, BLUE);
+
+        if (IsKeyPressed(KEY_N))
+        {
+            fill_random_array(numbers, array_max);
+            pass = 0;
+            index = 0;
+        }
+
+        if (pass < ARRAY_SIZE - 1) {
+            if (index < ARRAY_SIZE - 1 - pass) {
+                if (numbers[index + 1] < numbers[index]) {
+                    int temp = numbers[index + 1];
+                    numbers[index + 1] = numbers[index];
+                    numbers[index] = temp;
+                }
+                index++;
+            } else {
+                index = 0;
+                pass++;
+            }
+        }
+
+        EndDrawing();
+    }
 
 	CloseWindow();
 	return 0;
@@ -58,17 +87,32 @@ void fill_random_array(int numbers[ARRAY_SIZE], int array_max)
 {
 	for (size_t i=0; i<ARRAY_SIZE; i++)
 	{
-		numbers[i] = rand() % (array_max + 1);
+		numbers[i] = rand() % array_max + 1;
 	}
 }
 
-void draw_array(int numbers[ARRAY_SIZE], int windowHeight)
+
+
+/*
+bubble sort basically:
+
+- go through integer array
+- if int[i+1] < int[i] : swap int[i] and int[i+1]
+*/
+
+void draw_array(int numbers[ARRAY_SIZE], int windowHeight, int current_item)
 {
 	for (size_t i=0; i<ARRAY_SIZE; i++)
 	{
 		int rectHeight = numbers[i] * SQUARE_SIZE_PIXELS;
 		int posX = i*SQUARE_SIZE_PIXELS;
 		int posY = windowHeight-rectHeight;
-		DrawRectangle(posX, posY, SQUARE_SIZE_PIXELS, rectHeight, WHITE);
+		
+		if (i == current_item)
+		{
+			DrawRectangle(posX, posY, SQUARE_SIZE_PIXELS, rectHeight, RED);
+		} else {
+			DrawRectangle(posX, posY, SQUARE_SIZE_PIXELS, rectHeight, WHITE);
+		}
 	}
 }
