@@ -1,54 +1,74 @@
 /*
-Raylib example file.
-This is an example main file for a simple raylib project.
-Use this as a starting point or replace it with your code.
-
-by Jeffery Myers is marked with CC0 1.0. To view a copy of this license, visit https://creativecommons.org/publicdomain/zero/1.0/
-
+sorting
 */
 
 #include "raylib.h"
+#include <stddef.h>
+#include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#include "resource_dir.h"	// utility header for SearchAndSetResourceDir
+#define ARRAY_SIZE 			64
+#define SQUARE_SIZE_PIXELS 	10
 
-int main ()
+void fill_random_array(int numbers[ARRAY_SIZE], int array_max);
+void draw_array(int numbers[ARRAY_SIZE], int windowHeight);
+
+int main(int argc, char* argv[])
 {
-	// Tell the window to use vsync and work on high DPI displays
-	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+	srand(time(NULL));
+	int array_max = 30; // goes from 0 to this (x coord)
+	int numbers[ARRAY_SIZE];
+	fill_random_array(numbers, array_max);
 
-	// Create the window and OpenGL context
-	InitWindow(1280, 800, "Hello Raylib");
-
-	// Utility function from resource_dir.h to find the resources folder and set it as the current working directory so we can load from it
-	SearchAndSetResourceDir("resources");
-
-	// Load a texture from the resources directory
-	Texture wabbit = LoadTexture("wabbit_alpha.png");
+	int windowHeight = array_max*SQUARE_SIZE_PIXELS;
 	
-	// game loop
-	while (!WindowShouldClose())		// run the loop untill the user presses ESCAPE or presses the Close button on the window
+	/* debug */
+	for (size_t i=0; i<ARRAY_SIZE; i++)
 	{
-		// drawing
+		printf("%d ", numbers[i]);
+	}
+
+	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+	InitWindow(ARRAY_SIZE*SQUARE_SIZE_PIXELS, windowHeight, "sorting");
+
+	while (!WindowShouldClose())
+	{
 		BeginDrawing();
-
-		// Setup the back buffer for drawing (clear color and depth buffers)
 		ClearBackground(BLACK);
-
-		// draw some text using the default font
-		DrawText("Hello Raylib", 200,200,20,WHITE);
-
-		// draw our texture to the screen
-		DrawTexture(wabbit, 400, 200, WHITE);
-		
-		// end the frame and get ready for the next one  (display frame, poll input, etc...)
+		draw_array(numbers, windowHeight);
+		DrawText("bubble sort", 0,0,15,BLUE);
 		EndDrawing();
 	}
 
-	// cleanup
-	// unload our texture so it can be cleaned up
-	UnloadTexture(wabbit);
-
-	// destroy the window and cleanup the OpenGL context
 	CloseWindow();
 	return 0;
+}
+
+/* 
+basically:
+
+- generate an array of integers between 0 and MAX (where each integer appears only once?)
+- draw unsorted array to screen
+- sort the array
+- for each sort action draw something to screen and emit noise w/ frequency based on integer value
+*/
+
+void fill_random_array(int numbers[ARRAY_SIZE], int array_max)
+{
+	for (size_t i=0; i<ARRAY_SIZE; i++)
+	{
+		numbers[i] = rand() % (array_max + 1);
+	}
+}
+
+void draw_array(int numbers[ARRAY_SIZE], int windowHeight)
+{
+	for (size_t i=0; i<ARRAY_SIZE; i++)
+	{
+		int rectHeight = numbers[i] * SQUARE_SIZE_PIXELS;
+		int posX = i*SQUARE_SIZE_PIXELS;
+		int posY = windowHeight-rectHeight;
+		DrawRectangle(posX, posY, SQUARE_SIZE_PIXELS, rectHeight, WHITE);
+	}
 }
