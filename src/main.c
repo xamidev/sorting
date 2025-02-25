@@ -1,5 +1,6 @@
 /*
-sorting
+sorting - an array sort visualization program in plain C & Raylib
+free software (as in freedom)
 */
 
 #include "raylib.h"
@@ -12,12 +13,10 @@ sorting
 #define SQUARE_SIZE_PIXELS 	10
 #define ARRAY_MAX			64
 
-void fill_random_array(int numbers[ARRAY_SIZE], int array_max);
 void draw_array(int numbers[ARRAY_SIZE], int windowHeight, int current_item);
-void bubblesort(int numbers[ARRAY_SIZE], int windowHeight);
-void fill_consecutive_integer_array(int numbers[ARRAY_SIZE], int array_max);
+void fill_consecutive_integer_array(int numbers[ARRAY_SIZE]);
 void shuffle_array(int numbers[ARRAY_SIZE]);
-void init_array(int numbers[ARRAY_SIZE], int array_max);
+void init_array(int numbers[ARRAY_SIZE]);
 void bubblesort_step(int numbers[ARRAY_SIZE], int* pass, int* index);
 char* get_string_by_sort_type(int sort_type);
 
@@ -26,42 +25,44 @@ enum SortTypes
 	BUBBLE
 };
 
+enum Error
+{
+	ENOTYP	// error no sort type
+};
+
 int main(int argc, char* argv[])
 {
 	srand(time(NULL));
-	int array_max = ARRAY_MAX; // goes from 1 to this (x coord)
 	int numbers[ARRAY_SIZE];
 	int sort_type = BUBBLE;
-	fill_random_array(numbers, array_max);
 
-	int windowHeight = array_max*SQUARE_SIZE_PIXELS;
-	
-	/* debug */
-	for (size_t i=0; i<ARRAY_SIZE; i++)
-	{
-		printf("%d ", numbers[i]);
-	}
+	int windowHeight = ARRAY_MAX*SQUARE_SIZE_PIXELS;
 
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 	InitWindow(ARRAY_SIZE*SQUARE_SIZE_PIXELS, windowHeight, "sorting");
-	//SetTargetFPS(2);
 
 	int pass = 0;
     int index = 0;
-	init_array(numbers, array_max);
+	init_array(numbers);
 
 	while (!WindowShouldClose())
     {
         BeginDrawing();
         ClearBackground(BLACK);
 
+		char* sort_type_string = get_string_by_sort_type(sort_type);
+		if (!sort_type_string)
+		{
+			return -ENOTYP;
+		}
+
         draw_array(numbers, windowHeight, index);
-        DrawText(get_string_by_sort_type(sort_type), 0, 0, 15, BLUE);
-		DrawText(TextFormat("Pass: %i", pass+1), 0, 20, 15, GREEN);
+        DrawText(sort_type_string, 0, 0, 15, BLUE);
+		DrawText(TextFormat("Pass: %i", pass+1), 0, 20, 15, pass == ARRAY_MAX ? GREEN : YELLOW); // makes sense only when complexity is O(n) right?
 
         if (IsKeyPressed(KEY_N))
         {
-			init_array(numbers, array_max);
+			init_array(numbers);
             pass = 0;
             index = 0;
         }
@@ -72,7 +73,7 @@ int main(int argc, char* argv[])
 				bubblesort_step(numbers, &pass, &index);
 				break;
 			default:
-				return -1;
+				return -ENOTYP;
 		}
 
         EndDrawing();
@@ -82,9 +83,9 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-void init_array(int numbers[ARRAY_SIZE], int array_max)
+void init_array(int numbers[ARRAY_SIZE])
 {
-	fill_consecutive_integer_array(numbers, array_max);
+	fill_consecutive_integer_array(numbers);
 	shuffle_array(numbers);
 }
 
@@ -121,7 +122,6 @@ char* get_string_by_sort_type(int sort_type)
 	{
 		case BUBBLE:
 			return "bubble sort";
-			break;
 		default:
 			return NULL;
 	}
@@ -133,7 +133,7 @@ Enforcing uniqueness:
 - Shuffle the array using Fisher-Yates shuffle
 */
 
-void fill_consecutive_integer_array(int numbers[ARRAY_SIZE], int array_max)
+void fill_consecutive_integer_array(int numbers[ARRAY_SIZE])
 {
 	for (size_t i=0; i<ARRAY_SIZE; i++)
 	{
@@ -151,17 +151,6 @@ void shuffle_array(int numbers[ARRAY_SIZE])
 		numbers[j] = temp;
 	}
 }
-
-// Obsolete: does not enforce uniqueness.
-void fill_random_array(int numbers[ARRAY_SIZE], int array_max)
-{
-	for (size_t i=0; i<ARRAY_SIZE; i++)
-	{
-		numbers[i] = rand() % array_max + 1;
-	}
-}
-
-
 
 /*
 bubble sort basically:
